@@ -123,6 +123,8 @@ create SSL/TLS certificates for secure communication which enables HTTPS for our
 
 for validating our websites ownership and issueing certificates, ACM uses DNS validation and create a specific DNS record to our domain's configuration. ACM will then verifies. 
 
+To enable secure communication using SSL/TLS using terraform, we have to do below steps:
+
 1. request ACM certificates
 2. create Route 53 DNS records for validation
 3. handle certificate validation
