@@ -114,7 +114,7 @@ resource "aws_autoscaling_group" "expense" {
   health_check_type         = "ELB"
   desired_capacity          = 2
   force_delete              = false
-  vpc_zone_identifier       = [public_subnet_ids]
+  vpc_zone_identifier       = public_subnet_ids
   target_group_arns         = [aws_lb_target_group.frontend.arn]
   launch_template {
     id      = aws_launch_template.expense.id

@@ -128,3 +128,154 @@ To enable secure communication using SSL/TLS using terraform, we have to do belo
 1. request ACM certificates
 2. create Route 53 DNS records for validation
 3. handle certificate validation
+
+
+# Expense Applications CDN Configuration
+
+This repository contains Terraform configurations for setting up the Content Delivery Network (CDN) for the Expense Applications. The infrastructure includes AWS CloudFront, AWS WAF, and Route 53 configurations.
+
+## Table of Contents
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Resources](#resources)
+  - [CloudFront Distribution](#cloudfront-distribution)
+  - [WAF Web ACL](#waf-web-acl)
+  - [Route 53 Records](#route-53-records)
+- [Variables](#variables)
+- [Outputs](#outputs)
+- [License](#license)
+
+## Architecture
+
+The infrastructure includes the following components:
+- **AWS CloudFront**: Distributes content with low latency and high transfer speeds.
+- **AWS WAF**: Protects the application from common web exploits and attacks.
+- **Route 53**: Manages DNS records for the application.
+
+
+
+## Resources
+
+### CloudFront Distribution
+
+The `aws_cloudfront_distribution` resource defines the CloudFront distribution.
+
+```terraform
+resource "aws_cloudfront_distribution" "expense" {
+  ...
+  restrictions {
+    geo_restriction {
+      restriction_type = "blacklist"
+      locations        = ["CN", "RU", "IR", "KP"]  # Example countries to block
+    }
+  }
+
+  web_acl_id = aws_wafv2_web_acl.example.arn
+
+  tags = merge(var.common_tags, var.frontend_tags, {
+    Name = "${var.project_name}-${var.environment}-cdn"
+  })
+
+  viewer_certificate {
+    acm_certificate_arn = data.aws_ssm_parameter.aws_acm_certificate_arn.value
+    ssl_support_method = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+}
+
+* restrictions: Configures geographic restrictions for the distribution.
+w* eb_acl_id: Associates the CloudFront distribution with a WAF Web ACL.
+* tags: Tags to apply to the distribution.
+* viewer_certificate: Configures the SSL/TLS settings for the distribution.
+```
+**WAF Web ACL**
+
+The aws_wafv2_web_acl resource defines the Web ACL for AWS WAF.
+
+```
+resource "aws_wafv2_web_acl" "example" {
+  name        = "example-web-acl"
+  scope       = "CLOUDFRONT"
+  description = "Web ACL to block specific request patterns and rate-limited requests"
+  default_action {
+    allow {}
+  }
+  rule {
+    name     = "RateLimitRule"
+    priority = 1
+    action {
+      block {}
+    }
+    statement {
+      rate_based_statement {
+        limit              = 1000  # Requests per 5 minutes
+        aggregate_key_type = "IP"
+      }
+    }
+    visibility_config {
+      sampled_requests_enabled    = true
+      cloudwatch_metrics_enabled  = true
+      metric_name                 = "RateLimitRule"
+    }
+  }
+  rule {
+    name     = "BlockBadBots"
+    priority = 2
+    action {
+      block {}
+    }
+    statement {
+      byte_match_statement {
+        search_string = "BadBot"
+        field_to_match {
+          single_header {
+            name = "User-Agent"
+          }
+        }
+        text_transformation {
+          priority = 0
+          type     = "NONE"
+        }
+        positional_constraint = "CONTAINS"
+      }
+    }
+    visibility_config {
+      sampled_requests_enabled    = true
+      cloudwatch_metrics_enabled  = true
+      metric_name                 = "BlockBadBots"
+    }
+  }
+}
+```
+
+* default_action: The default action for the Web ACL (allow or block).
+* rule: Defines individual rules within the Web ACL.
+* visibility_config: Configures logging and metrics for the rules.
+
+**Route 53 Records**
+
+The module "records" resource defines DNS records in Route 53.
+
+```module "records" {
+  source  = "terraform-aws-modules/route53/aws//modules/records"
+
+  zone_name = var.domain_name
+
+  records = [
+    {
+      name    = "expense-cdn"
+      type    = "A"
+      alias   = {
+        name    = aws_cloudfront_distribution.expense.domain_name
+        zone_id = aws_cloudfront_distribution.expense.hosted_zone_id
+      }
+      allow_overwrite = true
+    }
+  ]
+}
+```
+
+zone_name: The name of the DNS zone.
+
+records: The DNS records to create.
