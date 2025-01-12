@@ -14,7 +14,7 @@ This Terraform configuration defines the infrastructure for the Expense Project.
 
 ### 1. **VPC Module**
    - **VPC Creation**: Creates the Virtual Private Cloud (VPC) with custom CIDR block.
-   - **Subnets**: Defines public and private subnets across different availability zones.
+   - **Subnets**: Defines public and private subnets across different availability zones and create db subnet for RDS isntance.
    - **Internet Gateway (IGW)**: Attaches an IGW to the VPC for internet access.
    - **NAT Gateway**: Sets up a NAT Gateway for private subnet internet access.
    - **Route Tables**: Configures route tables for public and private subnets.
@@ -35,7 +35,7 @@ This Terraform configuration defines the infrastructure for the Expense Project.
    - **Frontend EC2 Instance**: The frontend EC2 instance is created, configured, and connected to the frontend load balancer.
 
 ### 4. **RDS MySQL Service**
-   - **RDS Instance**: A MySQL RDS instance is created in a private subnet and configured for database access.
+   - **RDS Instance**: A MySQL RDS instance is created in a db subnet and configured for database access.
 
 ### 5. **VPN Setup**
    - **VPN Gateway**: A VPN gateway is created for secure connections to the AWS infrastructure.
