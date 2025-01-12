@@ -257,7 +257,8 @@ resource "aws_wafv2_web_acl" "example" {
 
 The module "records" resource defines DNS records in Route 53.
 
-```module "records" {
+```
+module "records" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
 
   zone_name = var.domain_name
