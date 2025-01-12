@@ -1,7 +1,6 @@
 
-we can block the requests based on more complex conditions by using AWS WAG with CloudFront.
+# block the requests based on more complex conditions by using AWS WAG with CloudFront.
 
-for example, we can block the requests based on IP range
 
 * below setup helps you block requests from unusual users based on geographic location and IP addresses. You can further customize the WAF rules to block requests based on other conditions such as specific headers, query strings, or rate limiting.
 
