@@ -183,12 +183,12 @@ resource "aws_cloudfront_distribution" "expense" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 }
-
+```
 * restrictions: Configures geographic restrictions for the distribution.
 w* eb_acl_id: Associates the CloudFront distribution with a WAF Web ACL.
 * tags: Tags to apply to the distribution.
 * viewer_certificate: Configures the SSL/TLS settings for the distribution.
-```
+
 **WAF Web ACL**
 
 The aws_wafv2_web_acl resource defines the Web ACL for AWS WAF.
